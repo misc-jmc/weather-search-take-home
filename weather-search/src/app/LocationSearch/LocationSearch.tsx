@@ -35,7 +35,7 @@ const LocationSearch = ({
           locSearch: string,
           callback: (results?: readonly LocationData[]) => void,
         ) => {
-          fetch(`/LocationSearch/?location=${locSearch}`)
+          fetch(`/LocationSearch/?query=${locSearch}`)
           .then((res) => res.json())
           .then((body) => { callback(body.data) })
         },
@@ -54,7 +54,6 @@ const LocationSearch = ({
 
     searchLocations(searchVal, (results?: readonly LocationData[]) => {
       if(!results) return;
-
       if (active) {
         let newOptions: readonly LocationData[] = [];
 
@@ -66,10 +65,7 @@ const LocationSearch = ({
       }
     });
 
-    return () => {
-      active = false;
-    };
-  }, [location, searchVal, searchLocations]);
+  }, [searchVal]);
 
   return (
     <Autocomplete
@@ -77,14 +73,11 @@ const LocationSearch = ({
       getOptionLabel={(option) =>
         typeof option === 'string' ? option : getOptionLabel(option)
       }
+      filterOptions={(x) => x}
       options={locationOptions}
-      autoComplete
-      includeInputInList
-      filterSelectedOptions
       value={location}
       noOptionsText="No locations"
       onChange={(event: any, newValue: LocationData | null) => {
-        setLocationOptions(newValue ? [newValue, ...locationOptions] : locationOptions);
         setLocation(newValue);
         if(newValue) {
           onSelect(newValue);
