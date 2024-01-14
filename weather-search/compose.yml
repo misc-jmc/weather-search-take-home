@@ -3,11 +3,10 @@
 services:
   wg-easy:
     environment:
-      # ⚠️ Change the server's hostname (clients will connect to):
-      - WG_HOST=192.168.1.227
-
-      # ⚠️ Change the Web UI Password:
-      - PASSWORD=Password@1 
+      # ⚠️ Public IPv4 Address or host name
+      - WG_HOST=
+      # ⚠️ Admin password
+      - PASSWORD=
     image: ghcr.io/wg-easy/wg-easy
     container_name: wg-easy
     hostname: wg-easy
@@ -33,4 +32,5 @@ services:
     ports:
       - 3000:3000
     environment:
-      - API_KEY=9bf52c3aa236e93d7fef01a5bf39118e
+    # ⚠️ OpenWeather API KEY
+      - API_KEY=
