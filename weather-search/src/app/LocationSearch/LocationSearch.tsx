@@ -4,16 +4,26 @@ import * as React from 'react';
 import TextField from '@mui/material/TextField';
 import Autocomplete from '@mui/material/Autocomplete';
 import Grid from '@mui/material/Grid';
-import Typography from '@mui/material/Typography';
 import { debounce } from '@mui/material/utils';
+import { Coordinates } from '../WeatherDisplay/WeatherDisplay';
+
+export type LocationSearchProps = {
+  onSelect: (selection: Coordinates) => void;
+}
 
 export type LocationData = {
   name: string;
-  lat?: string;
-  lon?: string;
+  country?: string;
+  state?: string;
+} & Coordinates;
+
+const getOptionLabel = (option: LocationData) => {
+  return `${option.name}, ${option.country}${option.state ? ',': ''} ${option.state ?? ''}`;
 }
 
-export default function LocationSearch() {
+const LocationSearch = ({
+  onSelect
+}: LocationSearchProps) => {
   const [location, setLocation] = React.useState<LocationData | null>(null);
   const [searchVal, setSearchVal] = React.useState('');
   const [locationOptions, setLocationOptions] = React.useState<readonly LocationData[]>([]);
@@ -22,12 +32,12 @@ export default function LocationSearch() {
     () =>
       debounce(
         (
-          request: { input: string },
+          locSearch: string,
           callback: (results?: readonly LocationData[]) => void,
         ) => {
-          fetch(`/weather/${searchVal}`)
+          fetch(`/LocationSearch/?location=${locSearch}`)
           .then((res) => res.json())
-          .then((body) => { callback(body.data) });
+          .then((body) => { callback(body.data) })
         },
         400,
       ),
@@ -42,13 +52,11 @@ export default function LocationSearch() {
       return undefined;
     }
 
-    searchLocations({ input: searchVal }, (results?: readonly LocationData[]) => {
+    searchLocations(searchVal, (results?: readonly LocationData[]) => {
+      if(!results) return;
+
       if (active) {
         let newOptions: readonly LocationData[] = [];
-
-        if (searchVal) {
-          newOptions = [{name: searchVal}];
-        }
 
         if (results) {
           newOptions = [...newOptions, ...results];
@@ -67,9 +75,8 @@ export default function LocationSearch() {
     <Autocomplete
       sx={{ width: 300 }}
       getOptionLabel={(option) =>
-        typeof option === 'string' ? option : option.name
+        typeof option === 'string' ? option : getOptionLabel(option)
       }
-      filterOptions={(x) => x}
       options={locationOptions}
       autoComplete
       includeInputInList
@@ -78,7 +85,10 @@ export default function LocationSearch() {
       noOptionsText="No locations"
       onChange={(event: any, newValue: LocationData | null) => {
         setLocationOptions(newValue ? [newValue, ...locationOptions] : locationOptions);
-        setLocation(location);
+        setLocation(newValue);
+        if(newValue) {
+          onSelect(newValue);
+        }
       }}
       onInputChange={(event, newInputValue) => {
         setSearchVal(newInputValue);
@@ -87,19 +97,11 @@ export default function LocationSearch() {
         <TextField {...params} label="Search" fullWidth />
       )}
       renderOption={(props, option) => {
-        // const matches =
-        //   option.structured_formatting.main_text_matched_substrings || [];
-
-        // const parts = parse(
-        //   option.structured_formatting.main_text,
-        //   matches.map((match: any) => [match.offset, match.offset + match.length]),
-        // );
-
         return (
-          <li {...props}>
+          <li {...props} key={`${option.name}-${option.lat}-${option.lon}`}>
             <Grid container alignItems="center">
               <Grid item sx={{ width: 'calc(100% - 44px)', wordWrap: 'break-word' }}>
-                {option.name}
+                {getOptionLabel(option)}
               </Grid>
             </Grid>
           </li>
@@ -108,3 +110,5 @@ export default function LocationSearch() {
     />
   );
 }
+
+export default LocationSearch;
