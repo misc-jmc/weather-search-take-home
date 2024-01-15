@@ -17,6 +17,7 @@
 
 - To run in production mode (including spinning up the VPN)
     - Navigate to `./compose.yml` and alter variables to match your needs (each update marked with ⚠️)
+    - Ensure the app is built with `docker build . -t app`
     - Run `docker compose up -d`
     - Create a VPN client
         - Navigate to http://0.0.0.0:51821
